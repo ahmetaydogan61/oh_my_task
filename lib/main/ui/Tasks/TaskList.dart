@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:oh_my_task/main/domain/task/api/TaskItem.dart';
-import 'package:oh_my_task/main/ui/Tasks/TaskListActionButton.dart';
+import 'package:oh_my_task/main/ui/Tasks/TaskListAction.dart';
 
-class TaskList extends StatelessWidget {
+class TaskList extends StatefulWidget {
   final List<TaskItem> tasks;
-  final List<TaskListActionButton> actionButtons;
+  final TaskListAction taskListAction;
   final Future<void> Function(TaskItem, String) onTitleChange;
   final Future<void> Function(TaskItem, String) onDescriptionChange;
 
   const TaskList({
     super.key,
     required this.tasks,
-    required this.actionButtons,
+    required this.taskListAction,
     required this.onTitleChange,
     required this.onDescriptionChange,
   });
 
+  @override
+  TaskListPage createState() => TaskListPage();
+}
+
+class TaskListPage extends State<TaskList> {
   Future<void> _showItemDetailsDialog(
     BuildContext context,
     TaskItem task,
@@ -81,7 +86,10 @@ class TaskList extends StatelessWidget {
                           },
                         ),
                         if (titleEditingController.text.isNotEmpty)
-                          await onTitleChange(task, titleEditingController.text)
+                          await widget.onTitleChange(
+                            task,
+                            titleEditingController.text,
+                          )
                       },
                       icon: isEditingTitle
                           ? const Icon(Icons.done, color: Colors.black)
@@ -134,7 +142,7 @@ class TaskList extends StatelessWidget {
                                 }
                               },
                             ),
-                            await onDescriptionChange(
+                            await widget.onDescriptionChange(
                                 task, descEditingController.text)
                           },
                           icon: isEditingDesc
@@ -151,16 +159,18 @@ class TaskList extends StatelessWidget {
                     children: [
                       Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: actionButtons.map(
+                        children: widget.taskListAction.allButtons.map(
                           (button) {
-                            return IconButton(
-                              style: button.style,
-                              icon: button.icon,
-                              onPressed: () async {
-                                Navigator.of(context).pop();
-                                await button.action(task);
-                              },
-                            );
+                            return button != null
+                                ? IconButton(
+                                    style: button.iconButtonStyle,
+                                    icon: button.icon,
+                                    onPressed: () async {
+                                      Navigator.of(context).pop();
+                                      await button.action(task);
+                                    },
+                                  )
+                                : Container();
                           },
                         ).toList(),
                       ),
@@ -186,18 +196,77 @@ class TaskList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-        itemCount: tasks.length,
+        itemCount: widget.tasks.length,
         itemBuilder: (context, index) {
-          return Card(
-            elevation: 8.0,
-            color: Colors.white,
-            margin: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 6.0),
-            child: ListTile(
-              title: Text(tasks[index].title,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.black)),
-              onTap: () async =>
-                  await _showItemDetailsDialog(context, tasks[index]),
+          final task = widget.tasks[index];
+          final taskListAction = widget.taskListAction;
+
+          final hasPrimaryButton = taskListAction.primaryActionButton != null;
+          final primaryColor = hasPrimaryButton
+              ? taskListAction.primaryActionButton!.color
+              : Colors.white;
+          final primaryIcon = hasPrimaryButton
+              ? taskListAction.primaryActionButton!.icon
+              : const Icon(Icons.question_mark, color: Colors.white);
+
+          final hasSecondaryButton =
+              taskListAction.secondaryActionButton != null;
+          final secondaryColor = hasSecondaryButton
+              ? taskListAction.secondaryActionButton!.color
+              : Colors.white;
+          final secondaryIcon = hasSecondaryButton
+              ? taskListAction.secondaryActionButton!.icon
+              : const Icon(Icons.question_mark, color: Colors.white);
+
+          return Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
+            child: Dismissible(
+              key: Key(task.title),
+              onDismissed: (direction) async {
+                if (direction == DismissDirection.endToStart) {
+                  await taskListAction.primaryActionButton?.action(task);
+                } else if (direction == DismissDirection.startToEnd) {
+                  await taskListAction.secondaryActionButton?.action(task);
+                }
+              },
+              background: Card(
+                color: secondaryColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: secondaryIcon,
+                    )
+                  ],
+                ),
+              ),
+              secondaryBackground: Card(
+                color: primaryColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: primaryIcon,
+                    )
+                  ],
+                ),
+              ),
+              child: Card(
+                elevation: 8.0,
+                color: Colors.white,
+                child: ListTile(
+                  title: Text(
+                    task.title,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                  onTap: () async =>
+                      await _showItemDetailsDialog(context, task),
+                ),
+              ),
             ),
           );
         });
