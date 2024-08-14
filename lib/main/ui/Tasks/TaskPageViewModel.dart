@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:oh_my_task/main/domain/task/api/TaskCategory.dart';
 import 'package:oh_my_task/main/domain/task/api/TaskItem.dart';
 import 'package:oh_my_task/main/domain/task/api/TaskRepository.dart';
+import 'package:oh_my_task/main/ui/Tasks/TaskListAction.dart';
 import 'package:oh_my_task/main/ui/Tasks/TaskListActionButton.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -71,6 +72,7 @@ class TaskPageViewModel extends ChangeNotifier {
           await removeItem(task);
         },
         icon: const Icon(Icons.delete, color: Colors.white),
+        color: Colors.red,
       );
 
   TaskListActionButton get _doneAction => TaskListActionButton(
@@ -78,6 +80,7 @@ class TaskPageViewModel extends ChangeNotifier {
           await updateTaskCategory(task, TaskCategory.done);
         },
         icon: const Icon(Icons.done, color: Colors.white),
+        color: Colors.green,
       );
 
   TaskListActionButton get _archiveAction => TaskListActionButton(
@@ -85,6 +88,7 @@ class TaskPageViewModel extends ChangeNotifier {
           await updateTaskCategory(task, TaskCategory.archived);
         },
         icon: const Icon(Icons.archive, color: Colors.white),
+        color: Colors.black54,
       );
 
   TaskListActionButton get _restoreAction => TaskListActionButton(
@@ -92,24 +96,26 @@ class TaskPageViewModel extends ChangeNotifier {
           await updateTaskCategory(task, TaskCategory.active);
         },
         icon: const Icon(Icons.restart_alt, color: Colors.white),
+        color: Colors.blue,
       );
 
-  List<TaskListActionButton> get archiveAction => [
-        _restoreAction,
-        _deleteAction,
-      ];
+  TaskListAction get archiveAction => TaskListAction(
+        primaryActionButton: _restoreAction,
+        secondaryActionButton: _deleteAction,
+        otherAction: null,
+      );
 
-  List<TaskListActionButton> get activeActions => [
-        _archiveAction,
-        _doneAction,
-        _deleteAction,
-      ];
+  TaskListAction get activeActions => TaskListAction(
+        primaryActionButton: _doneAction,
+        secondaryActionButton: _archiveAction,
+        otherAction: _deleteAction,
+      );
 
-  List<TaskListActionButton> get doneActions => [
-        _archiveAction,
-        _restoreAction,
-        _deleteAction,
-      ];
+  TaskListAction get doneActions => TaskListAction(
+        primaryActionButton: _deleteAction,
+        secondaryActionButton: _restoreAction,
+        otherAction: _archiveAction,
+      );
 
   @override
   void dispose() {

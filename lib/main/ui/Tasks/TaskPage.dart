@@ -158,7 +158,7 @@ class TaskPageState extends State<TaskPage>
                   onDescriptionChange: (task, title) =>
                       viewModel.updateTaskDescription(task, title),
                   tasks: tasks(TaskCategory.archived),
-                  actionButtons: viewModel.archiveAction,
+                  taskListAction: viewModel.archiveAction,
                 ),
                 //Active List
                 TaskList(
@@ -167,7 +167,7 @@ class TaskPageState extends State<TaskPage>
                   onDescriptionChange: (task, title) =>
                       viewModel.updateTaskDescription(task, title),
                   tasks: tasks(TaskCategory.active),
-                  actionButtons: viewModel.activeActions,
+                  taskListAction: viewModel.activeActions,
                 ),
                 //Done List
                 TaskList(
@@ -176,7 +176,7 @@ class TaskPageState extends State<TaskPage>
                   onDescriptionChange: (task, title) =>
                       viewModel.updateTaskDescription(task, title),
                   tasks: tasks(TaskCategory.done),
-                  actionButtons: viewModel.doneActions,
+                  taskListAction: viewModel.doneActions,
                 ),
               ],
             );
